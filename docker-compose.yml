@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  dental-panoramic-radiograph-engine:
+    build: .
+    container_name: dental-panoramic-radiograph-engine
+    ports:
+      - "8000:8000"
+    environment:
+      - AUDIT_SECRET_KEY=dental-panoramic-radiograph-engine-prod-audit-key-2026
+      - MODEL_PROVIDER=mock
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
