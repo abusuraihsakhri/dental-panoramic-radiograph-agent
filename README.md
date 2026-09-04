@@ -1,7 +1,7 @@
 # Dental Panoramic Radiograph Agent
 
-> **Domain:** Diagnostic Radiology & Medical Imaging AI  
-> **Reference Guidelines & Standards:** `American College of Radiology (ACR) RADS & Fleischner Society`
+> **Domain:** Diagnostic Radiology & Medical Imaging AI
+> **Standards:** ACR RADS, Fleischner Society, FDI World Dental Federation Notation
 
 <div align="center">
 
@@ -16,84 +16,156 @@
 
 ---
 
-## 📖 What It Does
+## Overview
 
-Dental Panoramic Radiograph Agent
+Dental Panoramic Radiograph Agent is an enterprise-grade analytical engine for dental imaging analysis. It provides multi-agent evaluation of dental metrics with cryptographic audit trails, PHI outbound protection, and a FastAPI REST interface.
 
----
-
-## ⚙️ Key Capabilities & Algorithmic Modules
-
-- **Deterministic Calculation Engine**: Strict compliance with standard reference formulations and thresholds.
-- **Risk & Urgency Classification**: Multi-tier categorization with automated clinical/operational action recommendations.
-- **Validation & Guardrails**: Rigorous input bounds checking and anomaly detection.
+The system employs specialized worker agents that evaluate dental measurements against clinical reference standards, producing consensus dossiers with tamper-evident HMAC-SHA256 audit logging.
 
 ---
 
-## 💻 CLI Quickstart & Usage
+## Architecture
 
-### 1. Guided Interactive Mode
-```bash
-python cli.py
+```
+dental-panoramic-radiograph-agent/
+├── agents/                    # Core supervisor/worker architecture
+│   ├── api.py                 # FastAPI REST endpoints
+│   ├── base.py                # Security, PHI guard, HMAC audit trail
+│   ├── models.py              # Pydantic data models
+│   ├── supervisor.py          # Multi-agent orchestrator
+│   ├── workers.py             # Specialized evaluation workers
+│   ├── llm_factory.py         # LLM provider abstraction
+│   ├── learning.py            # Bayesian calibration engine
+│   ├── metrics.py             # Prometheus metrics exporter
+│   └── streamer.py            # WebSocket telemetry broadcaster
+├── dent_scan_ai/              # DentScan-AI FDI tooth numbering engine
+│   ├── agents.py              # FDI sub-agents (caries, bone resorption)
+│   ├── engine.py              # Core domain evaluation engine
+│   ├── models.py              # Frontier data models
+│   ├── cli.py                 # DentScan CLI interface
+│   └── server.py              # DentScan FastAPI server
+├── tests/                     # Pytest test suite
+├── web/                       # Operations console (HTML/JS)
+├── cli.py                     # Main CLI entry point
+├── enrichment.py              # Extended domain analysis agents
+├── simulator.py               # High-throughput stress testing
+└── Dockerfile                 # Container deployment
 ```
 
-### 2. Direct Parameterized Evaluation
+---
+
+## Key Features
+
+- **Multi-Agent Evaluation:** Specialized workers (InvariantQC, SafetyEscalation, ProtocolConformance) evaluate payloads independently
+- **Zero-PHI Outbound Guard:** AST and regex inspection blocking SSNs, MRNs, phone numbers, emails, and patient identifiers
+- **HMAC-SHA256 Audit Trail:** Cryptographically chained, tamper-evident logs for every evaluation
+- **FastAPI REST API:** OpenAPI 3.1 endpoints for audit, chat, and metrics
+- **Prometheus Telemetry:** Operational metrics export at `/metrics`
+- **Batch Processing:** CSV-based batch evaluation with error handling
+- **Docker Support:** Ready-to-deploy container configuration
+
+---
+
+## Installation
+
 ```bash
-python cli.py --task-id <value> --target <value> --primary <value> --secondary <value>
+# Clone the repository
+git clone https://github.com/abusuraihsakhri/dental-panoramic-radiograph-agent.git
+cd dental-panoramic-radiograph-agent
+
+# Install dependencies
+pip install fastapi uvicorn pydantic pytest
 ```
 
-### Parameter Reference
-- `--task-id`: Specifies input measurement or parameter value.
-- `--target`: Specifies input measurement or parameter value.
-- `--primary`: Specifies input measurement or parameter value.
-- `--secondary`: Specifies input measurement or parameter value.
-- `--critical`: Specifies input measurement or parameter value.
-- `--status`: Specifies input measurement or parameter value.
-- `--input`: Specifies input measurement or parameter value.
-- `--output`: Specifies input measurement or parameter value.
-
-### Input Data Schema
-
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `task_id` | Parameter / observation metric | Required |
-| `target_identifier` | Parameter / observation metric | Required |
-| `primary_metric` | Parameter / observation metric | Required |
-| `secondary_metric` | Parameter / observation metric | Required |
-| `is_critical_flag` | Parameter / observation metric | Required |
-| `status_descriptor` | Parameter / observation metric | Required |
-
 ---
 
-## 🛡️ Security & Enterprise Architecture
+## Usage
 
-* **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
-
----
-
-## 🧪 Testing & Verification
-
-Run the automated test suite:
+### CLI Commands
 
 ```bash
+# Run single task evaluation
+python cli.py audit --task-id TASK-001 --primary 28.5 --secondary 14.2 --critical --status DISCORDANT
+
+# Interactive chat query
+python cli.py chat "What is the system status?"
+
+# Batch process CSV records
+python cli.py batch -i sample.csv -o results.csv
+
+# Verify audit trail integrity
+python cli.py verify-audit
+
+# Launch REST API server
+python cli.py serve --host 127.0.0.1 --port 8000
+```
+
+### REST API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/metrics` | Prometheus metrics |
+| POST | `/api/audit` | Submit task for evaluation |
+| POST | `/api/chat` | Supervisory chat query |
+| GET | `/api/audit/logs` | Retrieve audit trail |
+
+### Example API Request
+
+```bash
+curl -X POST http://localhost:8000/api/audit \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_id": "TASK-001",
+    "target_identifier": "TARGET-01",
+    "primary_metric": 28.5,
+    "secondary_metric": 14.2,
+    "status_descriptor": "DISCORDANT",
+    "is_critical_flag": true
+  }'
+```
+
+---
+
+## Configuration
+
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
+| `AUDIT_SECRET_KEY` | HMAC signing key for audit trail | Auto-generated (ephemeral) |
+| `MODEL_PROVIDER` | LLM provider (`mock`, `ollama`, `claude`, `openai`) | `mock` |
+
+> **Security Note:** Always set `AUDIT_SECRET_KEY` in production to ensure audit trail persistence across restarts.
+
+---
+
+## Testing
+
+```bash
+# Run full test suite
 pytest -v
-```
 
-Execute high-throughput batch simulation benchmarks:
+# Run with coverage
+pytest -v --cov=agents --cov=dent_scan_ai
 
-```bash
-python simulator.py --tasks 1000 --concurrency 8
+# Run simulation benchmark
+python simulator.py 1000
 ```
 
 ---
 
-## 🐳 Container Deployment
+## Docker Deployment
 
 ```bash
+# Build and run
 docker build -t dental-panoramic-radiograph-agent .
-docker run -p 8000:8000 dental-panoramic-radiograph-agent
+docker run -p 8000:8000 -e AUDIT_SECRET_KEY=your-secret-key dental-panoramic-radiograph-agent
+
+# Or use docker-compose
+docker-compose up -d
 ```
+
+---
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.

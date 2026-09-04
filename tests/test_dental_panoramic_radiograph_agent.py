@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from agents.base import PHIGuard, AuditLogger, SecurityException
+from agents.base import PHIGuard, AuditLogger, AuditTrail, SecurityException
 from agents.models import SystemTaskPayload, UrgencyLevel, SystemIntegrityStatus
 from agents.workers import InvariantQCWorker, SafetyEscalationWorker, ProtocolConformanceWorker
 from agents.supervisor import SystemSupervisor
@@ -63,3 +63,35 @@ def test_supervisor_consensus_and_audit():
     assert main(["audit", "--task-id", "CLI-TEST-01"]) == 0
     assert main(["chat", "Explain", "specifications"]) == 0
     assert main(["verify-audit"]) == 0
+
+
+def test_audit_trail_signature_verification():
+    """Verify that HMAC signatures are correctly computed and verified."""
+    trail = AuditTrail(secret_key="test-key-for-verification")
+    trail.log("test-actor", "test-tier", "TEST_EVENT", {"key": "value"})
+
+    # Single entry should verify
+    assert trail.verify_integrity() is True
+
+    # Add another entry
+    trail.log("test-actor-2", "test-tier", "TEST_EVENT_2", {"key2": "value2"})
+    assert trail.verify_integrity() is True
+    assert len(trail.get_trail()) == 2
+
+
+def test_audit_trail_tamper_detection():
+    """Verify that tampered entries fail integrity verification."""
+    trail = AuditTrail(secret_key="test-key-for-tamper")
+    trail.log("actor", "tier", "EVENT", {"data": "original"})
+
+    # Tamper with the stored data
+    trail.logs[0]["payload_hash"] = "tampered_hash"
+
+    # Should fail verification due to signature mismatch
+    assert trail.verify_integrity() is False
+
+
+def test_batch_cli_error_handling():
+    """Verify batch CLI handles missing file gracefully."""
+    result = main(["batch", "-i", "nonexistent_file.csv"])
+    assert result == 1

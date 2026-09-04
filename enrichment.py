@@ -364,23 +364,23 @@ class LongitudinalDentalHealthMonitoringAndAiFollowupAgent:
 class DentalpanoramicradiographagentEnrichmentSuite:
     """Master coordinator executing all enriched domain features."""
     def __init__(self):
-        self.conebeamctcbct3dvolu = ConebeamCtCbct3dVolumetricAnalysisAgent()
-        self.orthodonticcephalome = OrthodonticCephalometricLandmarkDetectionAgent()
-        self.implantplanningandos = ImplantPlanningAndOsseointegrationMonitoringAgent()
-        self.temporomandibularjoi = TemporomandibularJointTmjAnalysisAgent()
-        self.pathologydetectionan = PathologyDetectionAndOralCancerScreeningAgent()
-        self.automateddentalchart = AutomatedDentalChartingAndTreatmentPlanningAgent()
-        self.longitudinaldentalhe = LongitudinalDentalHealthMonitoringAndAiFollowupAgent()
+        self.cbct_volumetric = ConebeamCtCbct3dVolumetricAnalysisAgent()
+        self.cephalometric = OrthodonticCephalometricLandmarkDetectionAgent()
+        self.implant_planning = ImplantPlanningAndOsseointegrationMonitoringAgent()
+        self.tmj_analysis = TemporomandibularJointTmjAnalysisAgent()
+        self.pathology_detection = PathologyDetectionAndOralCancerScreeningAgent()
+        self.dental_charting = AutomatedDentalChartingAndTreatmentPlanningAgent()
+        self.longitudinal_monitoring = LongitudinalDentalHealthMonitoringAndAiFollowupAgent()
 
     def execute_all(self, primary_val: float = 1.5, secondary_val: float = 0.5) -> Dict[str, Any]:
         results = {}
-        results["ConebeamCtCbct3dVolumetricAnalysisAgent"] = self.conebeamctcbct3dvolu.evaluate(primary_val, secondary_val)
-        results["OrthodonticCephalometricLandmarkDetectionAgent"] = self.orthodonticcephalome.evaluate(primary_val, secondary_val)
-        results["ImplantPlanningAndOsseointegrationMonitoringAgent"] = self.implantplanningandos.evaluate(primary_val, secondary_val)
-        results["TemporomandibularJointTmjAnalysisAgent"] = self.temporomandibularjoi.evaluate(primary_val, secondary_val)
-        results["PathologyDetectionAndOralCancerScreeningAgent"] = self.pathologydetectionan.evaluate(primary_val, secondary_val)
-        results["AutomatedDentalChartingAndTreatmentPlanningAgent"] = self.automateddentalchart.evaluate(primary_val, secondary_val)
-        results["LongitudinalDentalHealthMonitoringAndAiFollowupAgent"] = self.longitudinaldentalhe.evaluate(primary_val, secondary_val)
+        results["ConebeamCtCbct3dVolumetricAnalysisAgent"] = self.cbct_volumetric.evaluate(primary_val, secondary_val)
+        results["OrthodonticCephalometricLandmarkDetectionAgent"] = self.cephalometric.evaluate(primary_val, secondary_val)
+        results["ImplantPlanningAndOsseointegrationMonitoringAgent"] = self.implant_planning.evaluate(primary_val, secondary_val)
+        results["TemporomandibularJointTmjAnalysisAgent"] = self.tmj_analysis.evaluate(primary_val, secondary_val)
+        results["PathologyDetectionAndOralCancerScreeningAgent"] = self.pathology_detection.evaluate(primary_val, secondary_val)
+        results["AutomatedDentalChartingAndTreatmentPlanningAgent"] = self.dental_charting.evaluate(primary_val, secondary_val)
+        results["LongitudinalDentalHealthMonitoringAndAiFollowupAgent"] = self.longitudinal_monitoring.evaluate(primary_val, secondary_val)
         return results
 
 # Global instance
