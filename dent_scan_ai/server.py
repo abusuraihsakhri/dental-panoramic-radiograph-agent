@@ -15,7 +15,7 @@ def create_app():
 
         app = FastAPI(
             title="DentScan-AI: Orthopantomogram (OPG) Tooth Numbering & Caries Agent",
-            description="Implements FDI Two-Digit tooth notation, detecting proximal caries, periapical radiolucencies, and alveolar bone resorption %.",
+            description="Synthetic threshold demonstration only. Does not analyze radiographic images or detect dental pathology.",
             version="2.0.0-FRONTIER",
         )
 
