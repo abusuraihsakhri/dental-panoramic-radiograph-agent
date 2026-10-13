@@ -42,4 +42,4 @@ jobs:
       - name: Check browser JavaScript syntax
         run: node --check web/app.js
       - name: Test browser rule evaluation
-        run: node --test tests/test_web.cjs
+        run: node --test tests/test_web.cjs tests/test_web_dom.cjs
