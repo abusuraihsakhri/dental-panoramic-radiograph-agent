@@ -3,8 +3,10 @@ FastAPI REST API Server for Dental Panoramic Radiograph Agent.
 """
 from typing import Dict, Any, List
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
-from .base import AuditLogger, PHIGuard
+from .base import AuditLogger, PHIGuard, SecurityException
+from .metrics import GLOBAL_METRICS
 from .models import SystemTaskPayload, ConsensusDossier
 from .supervisor import SystemSupervisor
 
@@ -12,7 +14,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 
 app = FastAPI(
     title="Dental Panoramic Radiograph Agent API",
-    description="Enterprise Distributed Component Platform (Radiology & Neuroimaging Systems)",
+    description="Synthetic workflow rules demonstration; no radiographic interpretation or clinical validation.",
     version="3.0.0-ENTERPRISE",
 )
 
@@ -23,21 +25,20 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "dental-panoramic-radiograph-agent", "domain": "Radiology & Neuroimaging Systems", "standard": "ACR RADS / Fleischner Society / ASPECTS Guidelines", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "dental-panoramic-radiograph-agent", "domain": "Synthetic dental workflow rules", "clinical_use": False, "version": "3.0.0-ENTERPRISE"}
 
 
-@app.get("/metrics")
+@app.get("/metrics", response_class=PlainTextResponse)
 def metrics():
-    return {
-        "dossiers_processed_total": len(supervisor.dossier_registry),
-        "audit_blocks_total": len(AuditLogger.get_trail()),
-        "system_status": "NOMINAL_OPTIMAL"
-    }
+    return GLOBAL_METRICS.export_prometheus_text()
 
 
 @app.post("/api/audit")
 def api_audit(payload: SystemTaskPayload):
-    dossier = supervisor.process_task(payload)
+    try:
+        dossier = supervisor.process_task(payload)
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Potential identifier detected. Use synthetic task data.")
     return dossier.to_dict()
 
 
@@ -46,8 +47,8 @@ def api_chat(req: ChatRequest):
     try:
         ans = supervisor.query_supervisory_chat(req.query)
         return {"response": ans}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except SecurityException:
+        raise HTTPException(status_code=422, detail="Potential identifier detected. Use synthetic queries.")
 
 
 @app.get("/api/audit/logs")
