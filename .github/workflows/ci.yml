@@ -1,40 +1,78 @@
-name: Dental Panoramic Radiograph Engine CI/CD & Security Verification
+name: Test and verify
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [master, main]
   pull_request:
-    branches: [ master, main ]
+    branches: [master, main]
+
+permissions:
+  contents: read
 
 jobs:
-  test-and-audit:
+  python:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip 'setuptools>=83'
+          python -m pip install -e ".[api,test]" pip-audit ruff
+      - name: Validate dependencies and source
+        run: |
+          python -m pip check
+          ruff check --select E4,E7,E9,F63,F7,F82 agents dent_scan_ai cli.py enrichment.py simulator.py
+          pip-audit --progress-spinner off
+          python -m compileall -q agents dent_scan_ai cli.py enrichment.py simulator.py
+      - name: Run Python tests
+        run: python -m pytest -q
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Check browser JavaScript syntax
+        run: node --check web/app.js
+      - name: Test browser rule evaluation
+        run: node --test tests/test_web.cjs tests/test_web_dom.cjs
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install fastapi uvicorn pydantic pytest
-
-    - name: Run Pytest Suite
-      run: |
-        pytest -v
-
-    - name: Security SAST & Zero-PHI Audit
-      run: |
-        python -c "
-        from agents.base import PHIGuard, AuditLogger
-        import pytest
-        assert AuditLogger.verify_integrity() is True
-        print('Security & Zero-PHI Audit Passed!')
-        "
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build production image
+        run: docker build --tag dental-rules-demo:ci .
+      - name: Smoke-test containerized API
+        shell: bash
+        run: |
+          set -euo pipefail
+          key="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+          docker run --detach --name dental-rules-demo-ci \
+            --publish 127.0.0.1:18000:8000 \
+            --env "AUDIT_SECRET_KEY=$key" dental-rules-demo:ci
+          trap 'docker logs dental-rules-demo-ci || true; docker rm --force dental-rules-demo-ci || true' EXIT
+          ready=0
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if curl --fail --silent http://127.0.0.1:18000/health > /tmp/dental-health.json; then
+              ready=1
+              break
+            fi
+            sleep 3
+          done
+          test "$ready" -eq 1
+          python -c 'import json; assert json.load(open("/tmp/dental-health.json"))["status"] == "HEALTHY"'
+          curl --fail --silent --show-error -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"task_id":"CI-DEMO","target_identifier":"ANON","primary_metric":28}' \
+            http://127.0.0.1:18000/api/audit > /tmp/dental-audit.json
+          python -c 'import json; assert json.load(open("/tmp/dental-audit.json"))["total_alerts"] == 1'

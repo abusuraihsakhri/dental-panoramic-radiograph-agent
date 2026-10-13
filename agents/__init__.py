@@ -1,7 +1,7 @@
 """
-Dental Panoramic Radiograph Agent — Enterprise Automated Analytical Suite.
-Domain: Radiology & Neuroimaging Systems
-Standard: ACR RADS / Fleischner Society / ASPECTS Guidelines
+Dental Panoramic Radiograph Agent — Synthetic Rules Evaluation Suite.
+Domain: Synthetic dental workflow demonstration
+Standard: Demo rules, not clinical criteria
 
 """
-__version__ = "3.0.0-ENTERPRISE"
+__version__ = "2.0.1"

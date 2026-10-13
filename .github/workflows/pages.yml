@@ -1,0 +1,62 @@
+name: Deploy static rules demo
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Validate standalone browser app
+        run: |
+          node --check web/app.js
+          node --test tests/test_web.cjs tests/test_web_dom.cjs
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./web
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Verify published HTML and JavaScript assets
+        shell: bash
+        env:
+          DEPLOYED_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          site="$DEPLOYED_URL"
+          for attempt in 1 2 3 4 5 6; do
+            if curl --fail --silent --show-error --location "$site" --output /tmp/dental-demo-index.html \
+              && grep -q 'id="audit-form"' /tmp/dental-demo-index.html \
+              && curl --fail --silent --show-error --location "${site%/}/app.js" --output /tmp/dental-demo-app.js \
+              && grep -q 'LOCAL_RULES_DEMONSTRATION' /tmp/dental-demo-app.js; then
+              echo "Live static entry point and JavaScript asset verified."
+              exit 0
+            fi
+            sleep 8
+          done
+          echo "GitHub Pages failed the live application smoke test." >&2
+          exit 1
