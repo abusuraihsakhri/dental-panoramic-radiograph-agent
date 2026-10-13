@@ -15,7 +15,7 @@ supervisor = SystemSupervisor(model_provider="mock")
 app = FastAPI(
     title="Dental Panoramic Radiograph Agent API",
     description="Synthetic workflow rules demonstration; no radiographic interpretation or clinical validation.",
-    version="3.0.0-ENTERPRISE",
+    version="2.0.1",
 )
 
 
@@ -25,7 +25,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "dental-panoramic-radiograph-agent", "domain": "Synthetic dental workflow rules", "clinical_use": False, "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "dental-panoramic-radiograph-agent", "domain": "Synthetic dental workflow rules", "clinical_use": False, "version": "2.0.1"}
 
 
 @app.get("/metrics", response_class=PlainTextResponse)
