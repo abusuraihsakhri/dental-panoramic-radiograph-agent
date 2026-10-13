@@ -45,3 +45,34 @@ jobs:
         run: node --check web/app.js
       - name: Test browser rule evaluation
         run: node --test tests/test_web.cjs tests/test_web_dom.cjs
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build production image
+        run: docker build --tag dental-rules-demo:ci .
+      - name: Smoke-test containerized API
+        shell: bash
+        run: |
+          set -euo pipefail
+          key="$(python -c 'import secrets; print(secrets.token_hex(32))')"
+          docker run --detach --name dental-rules-demo-ci \
+            --publish 127.0.0.1:18000:8000 \
+            --env "AUDIT_SECRET_KEY=$key" dental-rules-demo:ci
+          trap 'docker logs dental-rules-demo-ci || true; docker rm --force dental-rules-demo-ci || true' EXIT
+          ready=0
+          for attempt in 1 2 3 4 5 6 7 8 9 10; do
+            if curl --fail --silent http://127.0.0.1:18000/health > /tmp/dental-health.json; then
+              ready=1
+              break
+            fi
+            sleep 3
+          done
+          test "$ready" -eq 1
+          python -c 'import json; assert json.load(open("/tmp/dental-health.json"))["status"] == "HEALTHY"'
+          curl --fail --silent --show-error -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"task_id":"CI-DEMO","target_identifier":"ANON","primary_metric":28}' \
+            http://127.0.0.1:18000/api/audit > /tmp/dental-audit.json
+          python -c 'import json; assert json.load(open("/tmp/dental-audit.json"))["total_alerts"] == 1'
