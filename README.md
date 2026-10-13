@@ -1,5 +1,7 @@
 # Dental Panoramic Radiograph Agent
 
+### [Open the Live Application →](https://abusuraihsakhri.github.io/dental-panoramic-radiograph-agent/)
+
 This repository currently implements **synthetic rule-evaluation demonstrations**, not panoramic radiograph interpretation. It has two Python command-line/API implementations and a self-contained browser demonstration. **No code in this repository reads radiographic image pixels, detects caries, localizes teeth, measures bone loss, or produces validated clinical findings.**
 
 ## What works
@@ -14,7 +16,7 @@ The demo thresholds are arbitrary software examples; **they are not dental refer
 
 ## Try it in a browser
 
-Open `web/index.html` locally, or use the published GitHub Pages deployment once its availability has been confirmed. No Python, service or model is required for the web demo. Inputs remain in the browser tab; nothing is transmitted and no browser storage is used. Exporting JSON is explicitly initiated by the user.
+Open the [verified live browser application](https://abusuraihsakhri.github.io/dental-panoramic-radiograph-agent/) or open `web/index.html` locally. No Python, service or model is required for the web demo. Inputs remain in the browser tab; nothing is transmitted and no browser storage is used. Exporting JSON is explicitly initiated by the user.
 
 This project is not suitable for clinical decisions. Use **synthetic, de-identified demonstration data only**.
 
@@ -66,7 +68,7 @@ python -c "import secrets; print(secrets.token_hex(32))"
 docker compose up --build
 ```
 
-Compose maps port 8000 to localhost by default. Do not expose this unauthenticated prototype API directly to the internet. `AUDIT_SECRET_KEY` is used for HMAC integrity, not for encryption or access control. Without a stable key, standalone Python runs generate an ephemeral key.
+**Rotation notice:** An earlier public revision included a fixed signing key in Compose. If that key was ever deployed, treat it as disclosed and replace it with a newly generated random key. Compose maps port 8000 to localhost by default. Do not expose this unauthenticated prototype API directly to the internet. `AUDIT_SECRET_KEY` is used for HMAC integrity, not for encryption or access control. Without a stable key, standalone Python runs generate an ephemeral key.
 
 ## Security, privacy and limitations
 
