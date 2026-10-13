@@ -16,7 +16,7 @@ def create_app():
         app = FastAPI(
             title="DentScan-AI: Orthopantomogram (OPG) Tooth Numbering & Caries Agent",
             description="Synthetic threshold demonstration only. Does not analyze radiographic images or detect dental pathology.",
-            version="2.0.0-FRONTIER",
+            version="2.0.1",
         )
 
         class TaskRequest(BaseModel):
@@ -33,7 +33,7 @@ def create_app():
 
         @app.get("/health")
         def health():
-            return {"status": "HEALTHY", "system": "dental-panoramic-radiograph-agent", "domain": "Dentistry AI", "version": "2.0.0-FRONTIER"}
+            return {"status": "HEALTHY", "system": "dental-panoramic-radiograph-agent", "domain": "Dentistry AI", "version": "2.0.1"}
 
         @app.post("/api/audit")
         def api_audit(req: TaskRequest):
